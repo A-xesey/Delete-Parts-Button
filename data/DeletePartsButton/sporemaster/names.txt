@@ -1,0 +1,46 @@
+animations~	0x0
+names
+DeletePar
+DeletePartsButt
+DeletePartsBu
+ui_packedLayout~	0x40464200
+DeletePartsButtonName
+DeleteP
+csa-trash-LG-act
+csa-trash-norm
+DeletePartsLoca
+csa-trash-LG-off
+DeleteParts
+DeletePart
+Dele
+DeletePartsUI ? ?????
+DeletePartsLocale
+en-us
+DeletePartsBut
+DeletePartsUI
+DeletePartsLo
+DeletePartsLoc
+csa-trash-off
+DeletePartsLocal
+csa-trash-LG-hl
+DeletePartsButtonN
+0
+DeletePartsButtonNa
+Delete
+DeletePartsButton
+DeletePa
+csa-trash-hl
+csa-trash-act
+editors_creature~	0x100d977c
+De
+DeletePartsButtonNam
+csa-trash-LG-norm
+DeletePartsL
+Del
+D
+csa-trash-hitmask
+Delet
+DeletePartsB
+locale~	0x2fabf01
+DeletePartsButto
+sporemaster

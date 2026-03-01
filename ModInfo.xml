@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<mod description="" displayName="DeletePartsButton" dllsBuild="$SPOREMOD_DLLS_BUILD" hasCustomInstaller="false" installerSystemVersion="1.0.1.2" isExperimental="$SPOREMOD_EXPERIMENTAL" unique="DeletePartsButton">
+  <prerequisite game="GalacticAdventures">DeletePartsButton.package</prerequisite>
+  <prerequisite>DeletePartsButton.dll</prerequisite>
+</mod>
