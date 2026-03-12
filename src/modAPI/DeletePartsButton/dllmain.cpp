@@ -50,7 +50,7 @@ member_detour(Editor_Update, cEditor, void(float delta1, float delta2)) {
 		if (deleteButton != nullptr)
 		{
 			if (deletePartsWinProc->GetPriorityDeletableParts(Editor.mpEditorModel->mRigblocks) == DeletePartsWinProc::kDeleteNothing
-				|| Editor.mMode == Mode::PaintMode)
+				|| Editor.mMode != Mode::BuildMode)
 				deleteButton->SetEnabled(false);
 			else
 				deleteButton->SetEnabled(true);

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "DeletePartsWinProc.h"
+#include <algorithm>
 
 using namespace Editors;
 
@@ -45,7 +46,7 @@ bool DeleteParts(EditorRigblock* block, uint32_t excludeInstanceID, bool canBeDe
 {
 	if (block->mInstanceID != excludeInstanceID && canBeDelete)
 	{
-		Editor.mpEditorLimits->AddValue(0, block->mModelPrice);
+		//Editor.mpEditorLimits->AddValue(0, block->mModelPrice);
 		//delete the symmetric block with childrens to avoid using this function twice
 		if (block->mpSymmetricRigblock != nullptr)
 		{
@@ -64,16 +65,37 @@ bool DeleteParts(EditorRigblock* block, uint32_t excludeInstanceID, bool canBeDe
 			Address(ModAPI::ChooseAddress(0x4acfd0, 0x4acfd0)),
 			bool,
 			Args(EditorModel*, EditorRigblock*, bool),
-			Args(Editor.mpEditorModel, block, false)
+			Args(Editor.mpEditorModel, block, true)
 		);
 		return true;
 	}
 	return false;
 }
 
+int GetTotalCost(const vector<EditorRigblockPtr>& blocks)
+{
+	vector<EditorRigblockPtr> help = blocks;
+	int cost = 0;
+	for (int index = 0; index < help.size(); index++)
+	{
+		if (help[index]->mpSymmetricRigblock != nullptr)
+		{
+			auto pos = eastl::find(help.begin(), help.end(), help[index]->mpSymmetricRigblock);
+			if (pos != help.end())
+			{
+				help.erase(help.begin() + std::distance(help.begin(), pos));
+				index = 0;
+				cost = 0;
+			}
+		}
+		cost += help[index]->mModelPrice;
+	}
+	return cost;
+}
+
 void ReplaceToNullGrasper(EditorRigblock* block)
 {
-	Editor.mpEditorLimits->AddValue(0, block->mModelPrice);
+	//Editor.mpEditorLimits->AddValue(0, block->mModelPrice);
 	if (block->mpSymmetricRigblock != nullptr)
 	{
 		block->mpSymmetricRigblock->mInstanceID = id("ce_grasper_null");
@@ -81,6 +103,7 @@ void ReplaceToNullGrasper(EditorRigblock* block)
 	}
 	block->mInstanceID = id("ce_grasper_null");
 	block->mGroupID = 0x40626000;
+	block->mModelPrice = 0;
 }
 
 DeletePartsWinProc::eDeletableParts DeletePartsWinProc::GetPriorityDeletableParts(const eastl::vector<EditorRigblockPtr>& blocks)
@@ -112,6 +135,7 @@ bool DeletePartsWinProc::HandleUIMessage(IWindow* window, const Message& message
 		if (!Editor.mpEditorModel->mRigblocks.empty()) {
 			bool forceUpdate = false;
 			eDeletableParts deletable = GetPriorityDeletableParts(Editor.mpEditorModel->mRigblocks);
+			int totalCost = GetTotalCost(Editor.mpEditorModel->mRigblocks);
 			for (int index = 0; index < Editor.mpEditorModel->mRigblocks.size(); index++) {
 				EditorRigblockPtr block = Editor.mpEditorModel->mRigblocks[index];
 				//check if block is not vertebra/plant root
@@ -146,18 +170,24 @@ bool DeletePartsWinProc::HandleUIMessage(IWindow* window, const Message& message
 					}
 				}
 			}
+			totalCost -= GetTotalCost(Editor.mpEditorModel->mRigblocks);
+			Editor.mpEditorLimits->AddValue(0, totalCost);
 			Editor.CommitEditHistory(true);
 
 			//we need update model after replacing blocks to metaballs
 			if (forceUpdate) {
 				//piece of code from Redo/Undo
-				eastl::string16 tags = Editor.mpEditorNamePanel->mpLayout->FindWindowByID(0x5415e48)->GetCaption();
+				eastl::string16 tags = u"";
+				IWindowPtr tagsWin = Editor.mpEditorNamePanel->mpLayout->FindWindowByID(0x5415e48);
+				if (tagsWin != nullptr)
+					tags = tagsWin->GetCaption();
 				EditorModel* newModel = new EditorModel();
 				newModel->Load(Editor.mEditHistory[Editor.mEditHistory.size() - 1].get());
 				Editor.SetEditorModel(newModel);
 				Editor.SetName(newModel->mName.c_str());
 				Editor.SetDescription(newModel->mDescription.c_str());
-				Editor.SetTags(tags.c_str());
+				if (tags != u"")
+					Editor.SetTags(tags.c_str());
 				newModel = nullptr;
 			}
 		}
