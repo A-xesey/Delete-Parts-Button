@@ -2,3 +2,4 @@
 /.github/workflows
 src/modAPI/DeletePartsButton/SdkPathConfig.props
 src/modAPI/DeletePartsButton/DeletePartsButton.sln
+src/modAPI/DeletePartsButton/DeletePartsButton.sln

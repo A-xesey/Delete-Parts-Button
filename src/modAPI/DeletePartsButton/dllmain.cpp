@@ -2,29 +2,24 @@
 #include "stdafx.h"
 #include "DeletePartsWinProc.h"
 
-using namespace Editors;
-
 UILayoutPtr deletePartsUI;
 DeletePartsWinProcPtr deletePartsWinProc;
 
-void Initialize()
+void Initialize() {}
+
+void Dispose()
 {
-	// This method is executed when the game starts, before the user interface is shown
-	// Here you can do things such as:
-	//  - Add new cheats
-	//  - Add new simulator classes
-	//  - Add new game modes
-	//  - Add new space tools
-	//  - Change materials
+	deletePartsUI = nullptr;
+	deletePartsWinProc = nullptr;
 }
 
-member_detour(EditorUI_Load, EditorUI, bool(cEditor*, uint32_t, uint32_t, bool))
-{
-	bool detoured(cEditor * pEditor, uint32_t instanceID, uint32_t groupID, bool editorModelForceSaveover)
-	{
+using namespace Editors;
+member_detour(EditorUI_Load, EditorUI, bool(cEditor*, uint32_t, uint32_t, bool)) {
+	bool detoured(cEditor * pEditor, uint32_t instanceID, uint32_t groupID, bool editorModelForceSaveover) {
 		bool res = original_function(this, pEditor, instanceID, groupID, editorModelForceSaveover);
-		if (res && (Editor.mSaveExtension == TypeIDs::flr || Editor.mSaveExtension == TypeIDs::crt || Editor.mSaveExtension == TypeIDs::cll))
-		{
+		if ((Editor.mSaveExtension == TypeIDs::flr ||
+			Editor.mSaveExtension == TypeIDs::crt ||
+			Editor.mSaveExtension == TypeIDs::cll) && res) {
 			if (deletePartsUI == nullptr) deletePartsUI = new UTFWin::UILayout();
 			deletePartsUI->LoadByID(id("DeletePartsUI"));
 			deletePartsUI->SetParentWindow(Editor.mpEditorUI->mMainUI.FindWindowByID(0x0578EC50));	//History buttons
@@ -43,32 +38,27 @@ member_detour(EditorUI_Load, EditorUI, bool(cEditor*, uint32_t, uint32_t, bool))
 };
 
 member_detour(Editor_Update, cEditor, void(float delta1, float delta2)) {
-	void detoured(float delta1, float delta2)
-	{
+	void detoured(float delta1, float delta2) {
 		original_function(this, delta1, delta2);
-		IWindowPtr deleteButton = deletePartsUI->FindWindowByID(id("DeletePartsButton"));
-		if (deleteButton != nullptr)
+		if (Editor.mSaveExtension == TypeIDs::flr ||
+			Editor.mSaveExtension == TypeIDs::crt ||
+			Editor.mSaveExtension == TypeIDs::cll)
 		{
-			if (deletePartsWinProc->GetPriorityDeletableParts(Editor.mpEditorModel->mRigblocks) == DeletePartsWinProc::kDeleteNothing
-				|| Editor.mMode != Mode::BuildMode)
-				deleteButton->SetEnabled(false);
-			else
-				deleteButton->SetEnabled(true);
+			IWindowPtr deleteButton = deletePartsUI->FindWindowByID(id("DeletePartsButton"));
+			if (deleteButton != nullptr)
+			{
+				if (deletePartsWinProc->GetPriorityDeletableParts(Editor.mpEditorModel->mRigblocks) == DeletePartsWinProc::kDeleteNothing
+					|| Editor.mMode != Mode::BuildMode)
+					deleteButton->SetEnabled(false);
+				else
+					deleteButton->SetEnabled(true);
+			}
 		}
 	}
 };
 
-void Dispose()
-{
-	// This method is called when the game is closing
-	deletePartsUI = nullptr;
-	deletePartsWinProc = nullptr;
-}
-
 void AttachDetours()
 {
-	// Call the attach() method on any detours you want to add
-	// For example: cViewer_SetRenderType_detour::attach(GetAddress(cViewer, SetRenderType));
 	EditorUI_Load::attach(GetAddress(EditorUI, Load));
 	Editor_Update::attach(GetAddress(cEditor, Update));
 }
